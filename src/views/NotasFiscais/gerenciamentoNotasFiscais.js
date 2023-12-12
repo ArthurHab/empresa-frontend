@@ -1,6 +1,7 @@
 import React from "react";
 import axios from 'axios';
 import MaterialTable from "material-table";
+import { Delete, Edit } from "@material-ui/icons";
 
 const GerenciamentoNotasFiscais = props => {
   const { useState, useEffect } = React;
@@ -16,15 +17,17 @@ const GerenciamentoNotasFiscais = props => {
     axios
       .get("http://localhost:8080/nota_fiscal")
       .then(response => {
+        console.log(response.data)
         const notas_fiscais = response.data.map(c => {
           return {
             id: c.id,
-            numero_nota_fiscal: c.numero_nota_fiscal,
-            nome_razao_social: c.nome_razao_social,
-            data_de_emissao: c.data_de_emissao,
-            data_de_entrada_saida: c.data_de_entrada_saida,
-            valor_nota_fiscal: c.valor_nota_fiscal,
-            cnpj: c.cnpj
+            numeroNotaFiscal: c.numeroNotaFiscal,
+            nomeRazaoSocial: c.nomeRazaoSocial,
+            dataDeEmissao: c.dataDeEmissao,
+            dataDeEntradaSaida: c.dataDeEntradaSaida,
+            valorNotaFiscal: c.valorNotaFiscal,
+            cnpj: c.cnpj,
+            descricaoProdutoServico: c.descricaoProdutoServico
           };
         });
         setData(notas_fiscais);
@@ -35,12 +38,12 @@ const GerenciamentoNotasFiscais = props => {
   function handleCreate(newData) {
     axios
       .post("http://localhost:8080/nota_fiscal", {
-        "numero_nota_fiscal": newData.numero_nota_fiscal,
-        "nome_razao_social": newData.nome_razao_social,
-        "data_de_emissao": newData.data_de_emissao,
-        "data_de_entrada_saida": newData.data_de_entrada_saida,
-        "valor_nota_fiscal": newData.valor_nota_fiscal,
-        "descricao_produto_servico": newData.descricao_produto_servico,
+        "numeroNotaFiscal": newData.numeroNotaFiscal,
+        "nomeRazaoSocial": newData.nomeRazaoSocial,
+        "dataDeEmissao": newData.dataDeEmissao,
+        "dataDeEntradaSaida": newData.dataDeEntradaSaida,
+        "valorNotaFiscal": newData.valorNotaFiscal,
+        "descricaoProdutoServico": newData.descricaoProdutoServico,
         "cnpj": newData.cnpj
       })
       .then(function (response) {
@@ -50,14 +53,15 @@ const GerenciamentoNotasFiscais = props => {
 
   function handleUpdate(newData) {
     axios
-      .put("http://localhost:8080/endereco", {
+      .put("http://localhost:8080/nota_fiscal", {
         "id": newData.id,
-        "rua": newData.rua,
-        "numero": newData.numero,
-        "cep": newData.cep,
-        "cidade": newData.cidade,
-        "estado": newData.estado,
-        "pais": newData.pais
+        "numeroNotaFiscal": newData.numeroNotaFiscal,
+        "nomeRazaoSocial": newData.nomeRazaoSocial,
+        "dataDeEmissao": newData.dataDeEmissao,
+        "dataDeEntradaSaida": newData.dataDeEntradaSaida,
+        "valorNotaFiscal": newData.valorNotaFiscal,
+        "descricaoProdutoServico": newData.descricaoProdutoServico,
+        "cnpj": newData.cnpj
       })
       .then(function (response) {
         console.log('Atualizado com sucesso.')
@@ -66,7 +70,7 @@ const GerenciamentoNotasFiscais = props => {
 
   function handleDelete(newData) {
     axios
-      .delete(`http://localhost:8080/endereco/${newData.id}`)
+      .delete(`http://localhost:8080/nota_fiscal/${newData.id}`)
       .then(function (response) {
         console.log('Deletado com sucesso.')
         const dataDelete = [...data];
@@ -80,19 +84,41 @@ const GerenciamentoNotasFiscais = props => {
 
   return (
     [
-
       <MaterialTable
-        title="Gerenciamento de Endereços"
+        title="Gerenciamento de Notas Fiscais"
         columns={[
-          { title: 'Id', field: 'id', editable: 'never'},
-          { title: 'Nº N.F', field: 'numero_nota_fiscal', type: 'numeric'}, 
-          { title: 'nome / razao social', field: 'nome_razao_social'},
-          { title: 'data de emissao', field: 'data_de_emissao', type: 'date'},
-          { title: 'data_de entrada/saida', field: 'data_de_entrada_saida', type: 'date'},
+          { title: 'Nº N.F', field: 'numeroNotaFiscal', type: 'numeric'}, 
+          { title: 'nome / razao social', field: 'nomeRazaoSocial'},
+          { title: 'data de emissao', field: 'dataDeEmissao', type: 'date'},
+          { title: 'data_de entrada/saida', field: 'dataDeEntradaSaida', type: 'date'},
           { title: 'cnpj', field: 'cnpj', type: 'numeric'},
-          { title: 'valor nota fiscal', field: 'valor_nota_fiscal', type: 'numeric'}
+          { title: 'valor nota fiscal', field: 'valorNotaFiscal', type: 'numeric'}
         ]}
         data={data}
+        detailPanel={[
+          {
+            tooltip: 'Show Name',
+            render: rowData => {
+              return (
+                <MaterialTable
+                title={`Decrição da nota fiscal ${rowData.numeroNotaFiscal}`}
+                columns={[
+                  { title: 'Actions', field: '', render: (row) => (
+                    <>
+                    <a href={"/teste"} target="_blank"><Edit/></a>
+                    </>
+                  )},
+                  { title: 'Código', field: 'codigo'},
+                  { title: 'Descrição produto / serviço', field: 'descricaoProdutoServico'}, 
+                  { title: 'Valor Unitário', field: 'valorUnitario'},
+                  { title: 'Desconto', field: 'desconto'},
+                ]}
+                data={JSON.parse(rowData.descricaoProdutoServico)}
+                />
+              )
+            },
+          },
+        ]}
         editable={{
           onRowAdd: newData =>
             new Promise((resolve, reject) => {
